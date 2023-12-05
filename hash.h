@@ -41,14 +41,19 @@ public:
    //
    // Construct
    //
-   unordered_set()
+   unordered_set() : numElements(0)
    {
    }
-   unordered_set(unordered_set&  rhs) 
+   unordered_set(unordered_set&  rhs) : numElements(rhs.numElements)
    {
+      for (size_t i = 0; i < 10; i++)
+      {
+         this->buckets[i] = rhs.buckets[i]; 
+      }
    }
-   unordered_set(unordered_set&& rhs) 
+   unordered_set(unordered_set&& rhs) : numElements(0)
    {
+      *this = rhs;
    }
    template <class Iterator>
    unordered_set(Iterator first, Iterator last)
@@ -72,6 +77,13 @@ public:
    }
    void swap(unordered_set& rhs)
    {
+      std::swap(numElements, rhs.numElements);
+      for (size_t i = 0; i < 10; i++)
+      {
+         custom::list<T> temp = buckets[i]; 
+         this->buckets[i] = rhs.buckets[i];
+         rhs.buckets[i] = temp; 
+      }
    }
 
    // 
@@ -101,7 +113,7 @@ public:
    //
    size_t bucket(const T& t)
    {
-      return 99;
+      return numElements;
    }
    iterator find(const T& t);
 
@@ -125,19 +137,19 @@ public:
    //
    size_t size() const 
    { 
-      return 99;
+      return numElements;
    }
    bool empty() const 
    { 
-      return false;
+      return numElements == 0;
    }
    size_t bucket_count() const 
    { 
-      return 100;
+      return 10;
    }
    size_t bucket_size(size_t i) const
    {
-      return 99;
+      return buckets[i].size();
    }
 
 private:
