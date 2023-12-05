@@ -14,7 +14,7 @@
  *        unordered_set           : A class that represents a hash
  *        unordered_set::iterator : An interator through hash
  * Author
- *    <your names here>
+ *    Sam Heaven, Abram Hansen
  ************************************************************************/
 
 #pragma once
@@ -51,13 +51,18 @@ public:
          this->buckets[i] = rhs.buckets[i]; 
       }
    }
-   unordered_set(unordered_set&& rhs) : numElements(0)
+   unordered_set(unordered_set&& rhs) : numElements(rhs.numElements)
    {
-      *this = rhs;
+      for (size_t i = 0; i < 10; i++)
+      {
+         this->buckets[i] = rhs.buckets[i];
+      }
    }
    template <class Iterator>
    unordered_set(Iterator first, Iterator last)
    {
+      for (auto it = first; it != last; it++)
+         insert(*it); 
    }
 
    //
@@ -113,7 +118,8 @@ public:
    //
    size_t bucket(const T& t)
    {
-      return numElements;
+      std::hash <T> hasher;
+      return hasher(t) % bucket_count();
    }
    iterator find(const T& t);
 
@@ -179,6 +185,7 @@ public:
    iterator(typename custom::list<T>* pBucket,
             typename custom::list<T>* pBucketEnd,
             typename custom::list<T>::iterator itList)
+      : pBucket(pBucket), pBucketEnd(pBucketEnd), itList(itList)
    {
    }
    iterator(const iterator& rhs) 
@@ -316,7 +323,21 @@ typename unordered_set <T> ::iterator unordered_set<T>::erase(const T& t)
 template <typename T>
 custom::pair<typename custom::unordered_set<T>::iterator, bool> unordered_set<T>::insert(const T& t)
 {
-   return custom::pair<custom::unordered_set<T>::iterator, bool>(iterator(), true);
+   auto iBucket = bucket(t); 
+   
+   for (auto it = buckets[iBucket].begin(); it != buckets[iBucket].end(); it++)
+   {
+      if (*it == t)
+      {
+         return custom::pair<custom::unordered_set<T>::iterator, bool>(iterator(buckets, buckets + 10, buckets[0].begin()), false);
+      }
+   }
+
+   buckets[iBucket].push_back(t);
+   numElements++; 
+
+ 
+   return custom::pair<custom::unordered_set<T>::iterator, bool>(iterator(buckets + iBucket, buckets + 10, buckets[0].begin()), true);
 }
 template <typename T>
 void unordered_set<T>::insert(const std::initializer_list<T> & il)
