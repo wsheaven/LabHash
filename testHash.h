@@ -59,7 +59,7 @@ public:
       test_assignMove_emptyEmpty();
       test_assignMove_emptyStandard();
       test_assignMove_standardEmpty();  
-      test_swapMember_emptyEmpty();
+     test_swapMember_emptyEmpty();
       test_swapMember_standardEmpty();
       test_swapMember_standardOther();
       test_swapNonMember_emptyEmpty();

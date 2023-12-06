@@ -74,10 +74,27 @@ public:
    //
    unordered_set& operator=(unordered_set& rhs)
    {
+      if (this != &rhs)
+      {
+         numElements = rhs.numElements;
+         for (size_t i = 0; i < 10; i++)
+         {
+            this->buckets[i] = rhs.buckets[i];
+         }
+      }
       return *this;
    }
    unordered_set& operator=(unordered_set&& rhs)
    {
+      if (this != &rhs)
+      {
+         numElements = rhs.numElements;
+         for (size_t i = 0; i < 10; i++)
+         {
+            this->buckets[i] = std::move(rhs.buckets[i]);
+         }
+      }
+      rhs.numElements = 0; 
       return *this;
    }
    unordered_set& operator=(const std::initializer_list<T>& il)
@@ -102,7 +119,12 @@ public:
    class local_iterator;
    iterator begin()
    {
-      return iterator();
+      for (size_t i = 0; i < 10; i++)
+      {
+         if (! this->buckets[i].empty())
+            return iterator(buckets + i, buckets + 10, buckets[i].begin());
+      }
+      return end();
    }
    iterator end()
    {
@@ -281,6 +303,10 @@ public:
    //
    local_iterator& operator = (const local_iterator& rhs)
    {
+      if (this != &rhs)
+      {
+         itList = rhs.itList; 
+      }
       return *this;
    }
 
@@ -393,7 +419,6 @@ typename unordered_set <T> ::iterator unordered_set<T>::find(const T& t)
       ++itList;
    }
 
-   // If element not found, return end() iterator
    return end();
 }
 
@@ -404,6 +429,25 @@ typename unordered_set <T> ::iterator unordered_set<T>::find(const T& t)
 template <typename T>
 typename unordered_set <T> ::iterator & unordered_set<T>::iterator::operator ++ ()
 {
+
+   if (pBucket == pBucketEnd)
+      return *this;
+
+   ++itList;
+
+
+   if (itList != pBucket->end())
+      return *this;
+
+   ++pBucket;
+   while (pBucket != pBucketEnd && pBucket->empty())
+      ++pBucket;
+
+   if (pBucket != pBucketEnd)
+      itList = pBucket->begin();
+   else
+      *this = unordered_set<T>::iterator(pBucketEnd, pBucketEnd, typename custom::list<T>::iterator());
+
    return *this;
 }
 
@@ -414,6 +458,7 @@ typename unordered_set <T> ::iterator & unordered_set<T>::iterator::operator ++ 
 template <typename T>
 void swap(unordered_set<T>& lhs, unordered_set<T>& rhs)
 {
+   lhs.swap(rhs); 
 }
 
 }
