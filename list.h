@@ -75,6 +75,7 @@ namespace custom
       iterator begin() { return iterator(pHead); }
       iterator rbegin() { return iterator(pTail); }
       iterator end() { return iterator(nullptr); }
+      iterator find(const T& value);
 
       //
       // Access
@@ -109,6 +110,7 @@ namespace custom
 
       bool empty()  const { return pHead == NULL; }
       size_t size() const { return numElements; }
+
 
 
    private:
@@ -882,6 +884,17 @@ namespace custom
       int tempElements = rhs.numElements;
       rhs.numElements = numElements;
       numElements = tempElements;
+   }
+
+   template <typename T>
+   typename custom::list<T>::iterator list<T>::find(const T& value)
+   {
+      for (auto it = begin(); it != end(); ++it) {
+         if (*it == value) {
+            return it;
+         }
+      }
+      return end(); // Return end iterator if the value is not found
    }
 
    //#endif

@@ -45,7 +45,7 @@ public:
    void run()
    {
       reset();
-      /*
+      
       // Construct
       test_construct_default();
       test_constructIterator_standard();
@@ -92,14 +92,14 @@ public:
       test_find_standardBack();
       test_find_standardMissingEmptyList();
       test_find_standardMissingFilledList();
-      */ 
+      
       // Insert
       test_insert_empty0();
       test_insert_empty58();
       test_insert_standard3();
       test_insert_standard77();
       test_insert_standardDuplicate();
-      /*
+     
       // Remove
       test_clear_empty();
       test_clear_standard();
@@ -119,7 +119,7 @@ public:
       test_bucketSize_standardEmpty();
       test_bucketSize_standardOne();
       test_bucketSize_standardTwo();
-      */ 
+      
       report("Hash");
    }
 

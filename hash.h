@@ -61,8 +61,12 @@ public:
    template <class Iterator>
    unordered_set(Iterator first, Iterator last)
    {
+      clear(); 
+       
       for (auto it = first; it != last; it++)
-         insert(*it); 
+      {
+         insert(*it);  
+      } 
    }
 
    //
@@ -102,7 +106,7 @@ public:
    }
    iterator end()
    {
-      return iterator();
+      return iterator(buckets + 10, buckets + 10, buckets[0].end());
    }
    local_iterator begin(size_t iBucket)
    {
@@ -135,6 +139,11 @@ public:
    //
    void clear() noexcept
    {
+      for (size_t i = 0; i < 10; i++)
+      {
+         this->buckets[i].clear();
+      }
+      numElements = 0; 
    }
    iterator erase(const T& t);
 
@@ -179,7 +188,7 @@ public:
    // 
    // Construct
    //
-   iterator()  
+   iterator() : pBucket(nullptr), pBucketEnd(nullptr)
    {  
    }
    iterator(typename custom::list<T>* pBucket,
@@ -189,6 +198,7 @@ public:
    {
    }
    iterator(const iterator& rhs) 
+      : pBucket(rhs.pBucket), pBucketEnd(rhs.pBucketEnd), itList(rhs.itList)
    { 
    }
 
@@ -197,6 +207,11 @@ public:
    //
    iterator& operator = (const iterator& rhs)
    {
+      if (this != &rhs) {
+         pBucket = rhs.pBucket;
+         pBucketEnd = rhs.pBucketEnd;
+         itList = rhs.itList;
+      }
       return *this;
    }
 
@@ -205,11 +220,11 @@ public:
    //
    bool operator != (const iterator& rhs) const 
    { 
-      return true;
+      return (pBucket != rhs.pBucket || itList != rhs.itList);
    }
    bool operator == (const iterator& rhs) const 
    { 
-      return true;
+      return (pBucket == rhs.pBucket && itList == rhs.itList);
    }
 
    // 
@@ -217,7 +232,7 @@ public:
    //
    T& operator * ()
    {
-      return *(new T());
+      return *itList;
    }
 
    //
@@ -313,7 +328,20 @@ private:
 template <typename T>
 typename unordered_set <T> ::iterator unordered_set<T>::erase(const T& t)
 {
-   return iterator();
+ 
+   auto itErase = find(t);
+   if (itErase == end())
+      return itErase;
+
+
+   auto itReturn = itErase;
+   ++itReturn;
+
+   size_t iBucket = bucket(t);
+   buckets[iBucket].erase(itErase.itList);
+   numElements--;
+
+   return itReturn;
 }
 
 /*****************************************
@@ -323,13 +351,13 @@ typename unordered_set <T> ::iterator unordered_set<T>::erase(const T& t)
 template <typename T>
 custom::pair<typename custom::unordered_set<T>::iterator, bool> unordered_set<T>::insert(const T& t)
 {
-   auto iBucket = bucket(t); 
+   size_t iBucket = bucket(t); 
    
    for (auto it = buckets[iBucket].begin(); it != buckets[iBucket].end(); it++)
    {
       if (*it == t)
       {
-         return custom::pair<custom::unordered_set<T>::iterator, bool>(iterator(buckets, buckets + 10, buckets[0].begin()), false);
+         return custom::pair<custom::unordered_set<T>::iterator, bool>(iterator(&buckets[iBucket], buckets + 10, buckets[iBucket].begin()), false);
       }
    }
 
@@ -337,12 +365,13 @@ custom::pair<typename custom::unordered_set<T>::iterator, bool> unordered_set<T>
    numElements++; 
 
  
-   return custom::pair<custom::unordered_set<T>::iterator, bool>(iterator(buckets + iBucket, buckets + 10, buckets[0].begin()), true);
+   return custom::pair<custom::unordered_set<T>::iterator, bool>(iterator(&buckets[iBucket], buckets + 10, buckets[iBucket].begin()), true);
 }
 template <typename T>
 void unordered_set<T>::insert(const std::initializer_list<T> & il)
 {
 }
+//return custom::pair<custom::unordered_set<T>::iterator, bool>(iterator(buckets + iBucket, buckets + 10, buckets[0].begin()), true);
 
 /*****************************************
  * UNORDERED SET :: FIND
@@ -351,7 +380,21 @@ void unordered_set<T>::insert(const std::initializer_list<T> & il)
 template <typename T>
 typename unordered_set <T> ::iterator unordered_set<T>::find(const T& t)
 {
-   return iterator();
+   size_t iBucket = bucket(t);
+
+   auto itList = buckets[iBucket].begin();
+
+   while (itList != buckets[iBucket].end()) 
+   {
+      if (*itList == t) 
+      {
+         return iterator(&buckets[iBucket], buckets + 10, itList);
+      }
+      ++itList;
+   }
+
+   // If element not found, return end() iterator
+   return end();
 }
 
 /*****************************************
